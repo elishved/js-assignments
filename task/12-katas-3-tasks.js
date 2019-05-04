@@ -28,7 +28,60 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    puzzle.forEach(elem => elem = elem.split(''));
+
+    function getNeighbours(point) {
+        const neighbours = [];
+
+        if (point.i != 0) {
+            neighbours.push({i: point.i - 1, j: point.j});
+        }
+        if (point.j != 0) {
+            neighbours.push({i: point.i, j: point.j - 1});
+        }
+        if (point.i != puzzle.length - 1) {
+            neighbours.push({i: point.i + 1, j: point.j});
+        }
+        if (point.j != puzzle[0].length - 1) {
+            neighbours.push({i: point.i, j: point.j + 1});
+        }
+
+        return neighbours;
+    }
+
+    function isSnakingString(point, string, trace) {
+        if (string == '') {
+            return true;
+        }
+
+        const neighbours = getNeighbours(point);
+        let newTrace = trace;
+        newTrace.push(point);
+        for (let neighb of neighbours) {
+            if (puzzle[neighb.i][neighb.j] == string[0] &&
+                trace.find(elem => elem.i == neighb.i && elem.j == neighb.j) == undefined &&
+                isSnakingString(neighb, string.slice(1), newTrace))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    const headCandidates = [];
+    for (let i = 0; i < puzzle.length; i++) {
+        for (let j = 0; j < puzzle[0].length; j++) {
+            if (puzzle[i][j] == searchStr[0]) {
+                headCandidates.push({i: i, j: j});
+            }
+        }
+    }
+    for (let candidate of headCandidates) {
+        if (isSnakingString(candidate, searchStr.slice(1), [])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -45,7 +98,27 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    function *HeapsAlgorithm(n, A) {
+		if (n == 1) {
+			yield A.join('');
+		} else {
+			let temp;
+			for (let i = 0; i < n; i++) {
+				yield *HeapsAlgorithm(n - 1, A);
+				if (n % 2 == 0) {
+					temp = A[i];
+					A[i] = A[n - 1];
+					A[n - 1] = temp;
+				} else {
+					temp = A[0];
+					A[0] = A[n - 1];
+					A[n - 1] = temp;
+				}
+			}
+		}
+	}
+
+    yield *HeapsAlgorithm(chars.length, chars.split(''));
 }
 
 
@@ -65,7 +138,11 @@ function* getPermutations(chars) {
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (buy at 1,6,5 and sell all at 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let sum = 0;
+	quotes.forEach((value, index) => {
+		sum += quotes.slice(index).sort((a, b) => b - a)[0] - value;
+	});
+	return sum;
 }
 
 
@@ -92,11 +169,30 @@ function UrlShortener() {
 UrlShortener.prototype = {
 
     encode: function(url) {
-        throw new Error('Not implemented');
+        let result = new String();
+    	let char1, char2, newChar;
+		for (let i = 0; i < url.length - 1; i += 2) {
+			char1 = url.charCodeAt(i);
+			char2 = url.charCodeAt(i + 1);
+			newChar = (char1 << 8) + char2;
+			result += String.fromCharCode(newChar);
+		}
+		if (url.length % 2 == 1) {
+			result += String.fromCharCode(url.charCodeAt(url.length - 1) << 8);
+		}
+		return result;
     },
     
     decode: function(code) {
-        throw new Error('Not implemented');
+        let result = new String();
+		let char1, char2, oldChar;
+		for (let i = 0; i < code.length; i++) {
+			oldChar = code.charCodeAt(i);
+			char2 = oldChar & 255;
+			char1 = oldChar >> 8;
+			result += String.fromCharCode(char1) + ((char2 == 0) ? '' : String.fromCharCode(char2));
+		}
+		return result;
     } 
 }
 
