@@ -34,7 +34,33 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    const top =  [' _ ', '   ', ' _ ', ' _ ', '   ', ' _ ', ' _ ', ' _ ', ' _ ', ' _ '];
+    const middle =  ['| |', '  |', ' _|', ' _|', '|_|', '|_ ', '|_ ', '  |', '|_|', '|_|'];
+    const bottom =  ['|_|', '  |', '|_ ', ' _|', '  |', ' _|', '|_|', '  |', '|_|', ' _|'];
+
+    function getStringDigit(index, arr) {
+        let digit = [];
+        for (let i = 0; i < arr.length; i++) {
+            digit.push( arr[i].slice(index * 3, (index + 1) * 3));
+        }
+        return digit;
+    }
+
+    let stringAccount = bankAccount.split('\n');
+    const numOfDigits = bankAccount.length / 3 - 1;
+    let result = '';
+
+    for (let i = 0; i < numOfDigits; i++) {
+        const digit = getStringDigit(i, stringAccount);
+        for (let j = 0; j < numOfDigits; j++) {
+            if (top[j] == digit[0] && middle[j] == digit[1] && bottom[j] == digit[2]) {
+                result += j;
+                break;
+            }
+
+        }
+    }
+return result;
 }
 
 
@@ -63,7 +89,20 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
+    let startOfLine = 0, endOfWord = 0;
+    let count = 0, i = 0;
+    while(text[i]) {
+        count++;
+        if (text[i] == ' ') endOfWord = i;
+        if (count > columns) {
+            yield text.substring(startOfLine, endOfWord);
+            startOfLine = endOfWord + 1;
+            count = 0;
+            i = endOfWord;
+        }
+        i++;
+    }
+    yield text.substring(startOfLine);
 }
 
 
@@ -100,7 +139,55 @@ const PokerRank = {
 }
 
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    const getShape = card => card[card.length - 1];
+    const rankToNum = rank => isNaN(parseInt(rank)) ? (11 + ['J', 'Q', 'K', 'A'].indexOf(rank)) : parseInt(rank);
+    const getRank = card => rankToNum(card.length == 3 ? card.slice(0, 2) : card[0]);
+    const isSameShape = cards => cards.every(card => getShape(card) == getShape(cards[0]));
+
+    function countRanks(cards) {
+        const counters = Array.from({length: 13}, elem => 0);
+        for (let card of cards) {
+            counters[getRank(card) - 2]++;
+        }
+        return counters;
+    }
+
+    function isStraight (cards) {
+        const sorted = cards.map(card => getRank(card)).sort((a, b) => a - b);
+        if (sorted[0] == '2' && sorted[sorted.length - 1] == '14') {
+            sorted.unshift(sorted.pop());
+        }
+        for (let i = 1; i < sorted.length; i++) {
+            const diff = sorted[i] - sorted[i - 1];
+            if (diff != 1 && diff != -12) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    const ranks = countRanks(hand);
+    switch(true) {
+        case (isStraight(hand) && isSameShape(hand)):
+            return PokerRank.StraightFlush;
+        case (ranks.indexOf(4) != -1):
+            return PokerRank.FourOfKind;
+        case (ranks.indexOf(3) != -1 && ranks.indexOf(2) != -1):
+            return PokerRank.FullHouse;
+        case isSameShape(hand):
+            return PokerRank.Flush;
+        case isStraight(hand):
+            return PokerRank.Straight;
+        case ranks.indexOf(3) != -1:
+            return PokerRank.ThreeOfKind;
+        case ranks.indexOf(2) != -1 && ranks.lastIndexOf(2) != ranks.indexOf(2):
+            return PokerRank.TwoPairs;
+        case ranks.indexOf(2) != -1:
+            return PokerRank.OnePair;
+        default:
+    return PokerRank.HighCard;
+    }
 }
 
 
@@ -135,7 +222,40 @@ function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
+    let figureArr = figure.split('\n');
+	let rectangle = new Array();
+	for (let i = 0; i < figureArr.length; i++)
+		for (let j = 0; j < figureArr[i].length; j++)
+			if (figureArr[i][j] == '+') {
+				rectangle = GetRectangle(figureArr, i, j);
+				if (rectangle != null)
+					yield DrawRectangle(rectangle[1], rectangle[0]);
+                }
+}
+function GetRectangle(figure, row, column) {
+	for (let i = row + 1; i < figure.length; i++) {
+		if (figure[i][column] == '+') {
+			for (let j = column + 1; j < figure[row].length; j++) {
+				if (figure[i][j] == "+") {
+					if (figure[row][j] == "+") {
+						let flag = true;
+						for (let k = row + 1; k < i; k++)
+							if (figure[k][j] != '|') {
+								flag = false;
+								break;
+							}
+						if (flag) return [i - row + 1, j - column + 1];
+					}
+				} else if (figure[i][j] != '-') break;
+			}
+		} else if (figure[i][column] != '|') break;
+	}
+	return null;
+}
+
+function DrawRectangle(width, height) {
+    return '+' + '-'.repeat(width - 2) + '+\n' + ('|' + ' '.repeat(width - 2) +
+            '|\n').repeat(height - 2) + '+' + '-'.repeat(width - 2) + '+\n';
 }
 
 
